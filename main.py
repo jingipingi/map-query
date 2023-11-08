@@ -64,7 +64,7 @@ def get_all_places(params, api_key):
 
 api_key = 'AIzaSyCAsZO05dTX_K5GA_JS_WvsJdgh-3qyDAA'
 city_info = get_city_info('San Francisco', api_key)
-categories = ['Pharmacy', 'Gym']
+categories = ['Pharmacy', 'Gym','Trader Joes','Safeway','Park']
 result_df = pd.DataFrame()
 
 for category in categories:
@@ -76,21 +76,37 @@ for category in categories:
 data = result_df
 
 # Define a color mapping for categories
-# TODO: dynamically generate colors
-category_colors = {
-    "Pharmacy": "red",
-    "Gym": "blue"
-}
+# Create a function to generate distinct colors for categories
+# List of available Folium colors
+available_colors = [
+    'lightgreen', 'red', 'beige', 'lightgray', 'black', 'pink', 'darkgreen',
+    'white', 'purple', 'gray', 'cadetblue', 'darkblue', 'lightblue',
+    'lightred', 'darkred', 'orange', 'green', 'blue', 'darkpurple'
+]
 
-# TODO: change lat lon in folium map to city info acquired in variable
-m = folium.Map(location=[37.7749, -122.4194], zoom_start=12)
-# Add markers to the map
-for index, row in data.iterrows():
+m = folium.Map(location=[city_info[0], city_info[1]], zoom_start=12)
+
+# Create a dictionary to store category colors
+category_colors = {}
+
+# Iterate through the DataFrame and add markers with assigned colors
+for index, row in result_df.iterrows():
+    category = row['category']
+
+    if category not in category_colors:
+        # Assign the next color in the shuffled list to the category
+        category_colors[category] = available_colors[len(category_colors)]
+
+    color = category_colors[category]
+
     folium.Marker(
-        location=[row["lat"], row["lon"]],
-        popup=row["name"],
-        icon=folium.Icon(color='blue' if row['category'] == 'Gym' else 'red')
+        location=[row['lat'], row['lon']],
+        popup=row['name'],
+        icon=folium.Icon(color=color)
     ).add_to(m)
+
+#TODO: color neighborhood regions by median rental price for a 2b1b
+#TODO: filter the results to be confined to the city that was searched
 
 # Display the map
 m.save("interactive_map.html")
